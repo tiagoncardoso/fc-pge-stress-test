@@ -16,6 +16,7 @@ var (
 )
 
 func Request(url string, requests int, wg *sync.WaitGroup) {
+	startTest := time.Now()
 	defer wg.Done()
 
 	for i := 0; i < requests; i++ {
@@ -29,8 +30,12 @@ func Request(url string, requests int, wg *sync.WaitGroup) {
 		time.Sleep(500 * time.Millisecond)
 	}
 
+	endTest := time.Now()
+
 	slog.Info("Finish Report", "Total Requests", totalRequests)
 	slog.Info("Finish Report", "Requests Status", requestsStatus)
+	slog.Info("Finish Report", "Start Test", startTest)
+	slog.Info("Finish Report", "End Test", endTest)
 }
 
 func httpRequest(url string) int {
