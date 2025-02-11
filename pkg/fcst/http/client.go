@@ -15,7 +15,14 @@ var (
 	mu             sync.Mutex
 )
 
-func Request(url string, requests int, wg *sync.WaitGroup) {
+type RequestResult struct {
+	TotalRequests  int
+	RequestsStatus RequesStatusCode
+	StartTest      time.Time
+	EndTest        time.Time
+}
+
+func Request(url string, requests int, wg *sync.WaitGroup, results chan<- RequestResult) {
 	startTest := time.Now()
 	defer wg.Done()
 
@@ -32,10 +39,12 @@ func Request(url string, requests int, wg *sync.WaitGroup) {
 
 	endTest := time.Now()
 
-	slog.Info("Finish Report", "Total Requests", totalRequests)
-	slog.Info("Finish Report", "Requests Status", requestsStatus)
-	slog.Info("Finish Report", "Start Test", startTest)
-	slog.Info("Finish Report", "End Test", endTest)
+	results <- RequestResult{
+		TotalRequests:  totalRequests,
+		RequestsStatus: requestsStatus,
+		StartTest:      startTest,
+		EndTest:        endTest,
+	}
 }
 
 func httpRequest(url string) int {
