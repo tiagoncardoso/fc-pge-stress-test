@@ -31,11 +31,6 @@ func FcStress(params StressTestParams) {
 	report.EndTest = time.Now()
 
 	printReport(report)
-	//slog.Info("Finish Report", "Total Requests", report.TotalRequests)
-	//slog.Info("Finish Report", "Requests Status", report.RequestsStatus)
-	//slog.Info("Finish Report", "Start Test", report.StartTest)
-	//slog.Info("Finish Report", "End Test", report.EndTest)
-	//slog.Info("Finish Report", "Test Duration", report.TestDuration)
 }
 
 func initRoutines(params StressTestParams) StressTestReport {

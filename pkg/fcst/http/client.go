@@ -35,8 +35,6 @@ func Request(url string, requests int, wg *sync.WaitGroup, results chan<- Reques
 		updateStatusResponse(requestStatus)
 		totalRequests++
 		mu.Unlock()
-
-		time.Sleep(500 * time.Millisecond)
 	}
 
 	endTest := time.Now()
