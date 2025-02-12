@@ -1,6 +1,7 @@
 package http
 
 import (
+	"crypto/tls"
 	"log/slog"
 	"net/http"
 	"sync"
@@ -28,6 +29,7 @@ func Request(url string, requests int, wg *sync.WaitGroup, results chan<- Reques
 
 	for i := 0; i < requests; i++ {
 		requestStatus := httpRequest(url)
+		slog.Info("STRESS TEST", "Request count", totalRequests, "Requested URL", url, "Status Code", requestStatus)
 
 		mu.Lock()
 		updateStatusResponse(requestStatus)
@@ -48,15 +50,21 @@ func Request(url string, requests int, wg *sync.WaitGroup, results chan<- Reques
 }
 
 func httpRequest(url string) int {
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		slog.Error("Failed to create request", err)
+		slog.Error("Service Error", "Failed to create request", err)
 		return http.StatusServiceUnavailable
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
-		slog.Error("Request Failed", err)
+		slog.Error("Response Error", "Request Failed", err)
 		return http.StatusInternalServerError
 	}
 

@@ -1,6 +1,7 @@
 package fcst
 
 import (
+	"fmt"
 	"github.com/tiagoncardoso/fc-pge-stress-test/pkg/fcst/http"
 	"log/slog"
 	"sync"
@@ -16,15 +17,28 @@ type StressTestParams struct {
 type StressTestReport struct {
 	StartTest      time.Time
 	EndTest        time.Time
+	TestDuration   string
 	TotalRequests  int
 	RequestsStatus http.RequesStatusCode
 }
 
 func FcStress(params StressTestParams) {
-	initRoutines(params)
+	report := StressTestReport{
+		StartTest: time.Now(),
+	}
+
+	report = initRoutines(params)
+
+	report.EndTest = time.Now()
+
+	slog.Info("Finish Report", "Total Requests", report.TotalRequests)
+	slog.Info("Finish Report", "Requests Status", report.RequestsStatus)
+	slog.Info("Finish Report", "Start Test", report.StartTest)
+	slog.Info("Finish Report", "End Test", report.EndTest)
+	slog.Info("Finish Report", "Test Duration", report.TestDuration)
 }
 
-func initRoutines(params StressTestParams) {
+func initRoutines(params StressTestParams) StressTestReport {
 	var wg sync.WaitGroup
 	results := make(chan http.RequestResult, params.Concurrency)
 
@@ -37,17 +51,21 @@ func initRoutines(params StressTestParams) {
 	close(results)
 
 	var report StressTestReport
+	report.RequestsStatus = make(http.RequesStatusCode)
+
 	for result := range results {
-		report.TotalRequests += result.TotalRequests
+		report.TotalRequests = result.TotalRequests
 		report.StartTest = result.StartTest
 		report.EndTest = result.EndTest
-		for status, count := range result.RequestsStatus {
-			report.RequestsStatus[status] += count
-		}
+		report.TestDuration = getDuration(result.StartTest, result.EndTest)
+		report.RequestsStatus = result.RequestsStatus
 	}
 
-	slog.Info("Finish Report", "Total Requests", report.TotalRequests)
-	slog.Info("Finish Report", "Requests Status", report.RequestsStatus)
-	slog.Info("Finish Report", "Start Test", report.StartTest)
-	slog.Info("Finish Report", "End Test", report.EndTest)
+	return report
+}
+
+func getDuration(start, end time.Time) string {
+	duration := end.Sub(start)
+
+	return fmt.Sprintf("%02d:%02d:%02d", int(duration.Hours()), int(duration.Minutes())%60, int(duration.Seconds())%60)
 }
