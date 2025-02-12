@@ -3,7 +3,6 @@ package fcst
 import (
 	"fmt"
 	"github.com/tiagoncardoso/fc-pge-stress-test/pkg/fcst/http"
-	"log/slog"
 	"sync"
 	"time"
 )
@@ -31,11 +30,12 @@ func FcStress(params StressTestParams) {
 
 	report.EndTest = time.Now()
 
-	slog.Info("Finish Report", "Total Requests", report.TotalRequests)
-	slog.Info("Finish Report", "Requests Status", report.RequestsStatus)
-	slog.Info("Finish Report", "Start Test", report.StartTest)
-	slog.Info("Finish Report", "End Test", report.EndTest)
-	slog.Info("Finish Report", "Test Duration", report.TestDuration)
+	printReport(report)
+	//slog.Info("Finish Report", "Total Requests", report.TotalRequests)
+	//slog.Info("Finish Report", "Requests Status", report.RequestsStatus)
+	//slog.Info("Finish Report", "Start Test", report.StartTest)
+	//slog.Info("Finish Report", "End Test", report.EndTest)
+	//slog.Info("Finish Report", "Test Duration", report.TestDuration)
 }
 
 func initRoutines(params StressTestParams) StressTestReport {
@@ -68,4 +68,27 @@ func getDuration(start, end time.Time) string {
 	duration := end.Sub(start)
 
 	return fmt.Sprintf("%02d:%02d:%02d", int(duration.Hours()), int(duration.Minutes())%60, int(duration.Seconds())%60)
+}
+
+func printReport(report StressTestReport) {
+	fmt.Println("===============================================")
+	fmt.Println("|                  REPORT                     |")
+	fmt.Println("|---------------------------------------------|")
+	fmt.Printf("| Total Requests: %-27d |\n", report.TotalRequests)
+	fmt.Printf("| Start Test: %-31s |\n", report.StartTest.Format(time.RFC3339))
+	fmt.Printf("| End Test: %-33s |\n", report.EndTest.Format(time.RFC3339))
+	fmt.Printf("| Test Duration: %-28s |\n", report.TestDuration)
+	fmt.Println("|                                             |")
+	printReportStatusCode(report.RequestsStatus)
+	fmt.Println("===============================================")
+}
+
+func printReportStatusCode(report http.RequesStatusCode) {
+	fmt.Printf("| HTTP 200: %-33d |\n", report[200])
+
+	for code, total := range report {
+		if code != 200 {
+			fmt.Printf("| HTTP %d: %-33d |\n", code, total)
+		}
+	}
 }
